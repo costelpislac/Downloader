@@ -1,4 +1,6 @@
 
+using System;
+using System.Collections.Generic;
 namespace Downloader
 {
    partial class frm1
@@ -7,6 +9,7 @@ namespace Downloader
       {
          this.components = new System.ComponentModel.Container();
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frm1));
+         this.worker = new System.ComponentModel.BackgroundWorker();
          this.pb = new System.Windows.Forms.ProgressBar();
          this.bStart = new System.Windows.Forms.Button();
          this.bCancel = new System.Windows.Forms.Button();
@@ -24,6 +27,7 @@ namespace Downloader
          this.close = new System.Windows.Forms.CheckBox();
          this.vit = new System.Windows.Forms.Label();
          this.tip = new System.Windows.Forms.ToolTip(this.components);
+         this.calit = new System.Windows.Forms.ComboBox();
          this.SuspendLayout();
          // 
          // pb
@@ -68,7 +72,7 @@ namespace Downloader
          this.tTarget.Location = new System.Drawing.Point(12, 72);
          this.tTarget.Name = "tTarget";
          this.tTarget.ReadOnly = true;
-         this.tTarget.Size = new System.Drawing.Size(412, 20);
+         this.tTarget.Size = new System.Drawing.Size(256, 20);
          this.tTarget.TabIndex = 2;
          this.tTarget.TextChanged += new System.EventHandler(this.tTarget_TextChanged);
          // 
@@ -113,9 +117,9 @@ namespace Downloader
          // 
          this.bBrowse.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
          this.bBrowse.Image = ((System.Drawing.Image)(resources.GetObject("bBrowse.Image")));
-         this.bBrowse.Location = new System.Drawing.Point(401, 75);
+         this.bBrowse.Location = new System.Drawing.Point(248, 72);
          this.bBrowse.Name = "bBrowse";
-         this.bBrowse.Size = new System.Drawing.Size(20, 14);
+         this.bBrowse.Size = new System.Drawing.Size(20, 20);
          this.bBrowse.TabIndex = 3;
          this.bBrowse.Click += new System.EventHandler(this.bBrowse_Click);
          this.bBrowse.MouseHover += new System.EventHandler(this.bBrowse_MouseHover);
@@ -175,9 +179,29 @@ namespace Downloader
          this.tip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
          this.tip.ToolTipTitle = "Help:";
          // 
+         // calit
+         // 
+         this.calit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.calit.DropDownWidth = 145;
+         this.calit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+         this.calit.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(238)));
+         this.calit.Location = new System.Drawing.Point(277, 72);
+         this.calit.Name = "calit";
+         this.calit.Size = new System.Drawing.Size(146, 20);
+         this.calit.TabIndex = 13;
+         this.calit.Visible = false;
+         // 
+         // worker
+         // 
+         this.worker.WorkerReportsProgress = true;
+         this.worker.WorkerSupportsCancellation = true;
+         this.worker.DoWork += new System.ComponentModel.DoWorkEventHandler(worker_DoWork);
+         this.worker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(worker_RunWorkerCompleted);
+         // 
          // frm1
          // 
          this.ClientSize = new System.Drawing.Size(436, 225);
+         this.Controls.Add(this.calit);
          this.Controls.Add(this.vit);
          this.Controls.Add(this.close);
          this.Controls.Add(this.info);
@@ -195,11 +219,11 @@ namespace Downloader
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.MaximizeBox = false;
          this.Name = "frm1";
-         this.Text = " miniDownloader 1.4 - costelsoft.ro";
-         this.Load += new System.EventHandler(this.frm1_Load);
+         this.Text = " miniDownloader - facebook.com/costelsoft.ro";
          this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frm1_FormClosing);
-         this.Resize += new System.EventHandler(this.frm1_Resize);
+         this.Load += new System.EventHandler(this.frm1_Load);
          this.MouseHover += new System.EventHandler(this.frm1_MouseHover);
+         this.Resize += new System.EventHandler(this.frm1_Resize);
          this.ResumeLayout(false);
          this.PerformLayout();
 
@@ -223,6 +247,7 @@ namespace Downloader
       private System.Windows.Forms.CheckBox close;
       private System.Windows.Forms.Label vit;
       private System.Windows.Forms.ToolTip tip;
+      private System.Windows.Forms.ComboBox calit;
    }
 }
 

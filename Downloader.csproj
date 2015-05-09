@@ -41,9 +41,11 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileSizeFormatProvider.cs" />
     <Compile Include="frm1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -52,6 +54,12 @@
     </Compile>
     <Compile Include="prog.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="YouTubeDownloader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="YouTubeVideoQuality.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.ComponentModel;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace Downloader
 {
@@ -16,13 +17,26 @@ namespace Downloader
       public frm1() { InitializeComponent(); }
 
       //
-      WebClient wc; string s; long b1 = 0, b2; double d;
+      WebClient wc; string s, n; long b1 = 0, b2; double d; BackgroundWorker worker; bool yt = false;
 
-      //http://visualstudiogallery.msdn.microsoft.com/6eb51f05-ef01-4513-ac83-4c5f50c95fb5/file/67453/38/PHP.VS.1.8.4704.vsix
+      //
+      void worker_RunWorkerCompleted(object o, RunWorkerCompletedEventArgs e)
+      {
+         try
+         {
+            List<YouTubeVideoQuality> urls = e.Result as List<YouTubeVideoQuality>;
+            if(urls.Count > 0) { yt = true; calit.DataSource = urls; calit.Visible = true; bStart.Enabled = true; } else { yt = false; calit.Visible = false; bStart.Enabled = false; }
+         }
+         catch { calit.Visible = false; }
+      }
+
+      //
+      void worker_DoWork(object o, DoWorkEventArgs e) { e.Result = YouTubeDownloader.GetYouTubeVideoUrls(e.Argument.ToString()); }
+
+      //
       void frm1_Load(object o, EventArgs e)
       {
-         if(Clipboard.ContainsText() && Clipboard.GetText().Length < 2000)
-         { s = Clipboard.GetText(); if(s.Contains("tp") && s.Contains(".") && s.Contains("/")) tSource.Text = s; }
+         if(Clipboard.ContainsText() && Clipboard.GetText().Length < 2000) { s = Clipboard.GetText(); if(s.Contains("tp") && s.Contains(".") && s.Contains("/")) tSource.Text = s; }
          //destination
          tTarget.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
          //memoria
@@ -33,7 +47,10 @@ namespace Downloader
       void tSource_TextChanged(object o, EventArgs e)
       {
          if(tSource.Text.Length < 2000)
-         { if(tSource.Text.Contains("tp") && tSource.Text.Contains(".") && tSource.Text.Contains("/") && tTarget.Text.Length > 3) bStart.Enabled = true; else bStart.Enabled = false; }
+         {
+            if(tSource.Text.StartsWith("https://www.youtube.com/")) worker.RunWorkerAsync(tSource.Text); //youtube
+            else if(tSource.Text.Contains("tp") && tSource.Text.Contains(".") && tSource.Text.Contains("/") && tTarget.Text.Length > 3) bStart.Enabled = true; else bStart.Enabled = false;
+         }
          else { MessageBox.Show(this, "Path too long ! (max 2000 characters)", Text, MessageBoxButtons.OK, MessageBoxIcon.Error); tSource.Text = tSource.Text.Substring(0, 63); tSource.Focus(); }
       }
 
@@ -44,12 +61,19 @@ namespace Downloader
       void bStart_Click(object o, EventArgs e)
       {
          wc = new WebClient(); lab.Visible = true; wc.DownloadProgressChanged += new DownloadProgressChangedEventHandler(wc_DownloadProgressChanged);
-         wc.DownloadFileCompleted += new AsyncCompletedEventHandler(wc_DownloadFileCompleted);
-         tSource.ReadOnly = true; bPaste.Enabled = false; bBrowse.Enabled = false;
+         wc.DownloadFileCompleted += new AsyncCompletedEventHandler(wc_DownloadFileCompleted); tSource.ReadOnly = true; bPaste.Enabled = false; bBrowse.Enabled = false;
          try
          {
-            wc.DownloadFileAsync(new Uri(tSource.Text), tTarget.Text + "\\" + Path.GetFileName(tSource.Text).Replace("\\", "").Replace("/", "").Replace(":", "").Replace("*", "").
-               Replace("?", "").Replace("\"", "").Replace("<", "").Replace(">", "").Replace("|", ""));
+            if(yt) //youtube
+            {
+               YouTubeVideoQuality it = calit.SelectedItem as YouTubeVideoQuality;
+               n = tTarget.Text + "\\" + it.VideoTitle.Replace("\\", "").Replace("/", "").Replace(":", "").Replace("*", "").Replace("?", "").Replace("\"", "").Replace("<", "").Replace(">", "").Replace("|", "") + "." + it.Extention; wc.DownloadFileAsync(new Uri(it.DownloadUrl), n);
+            }
+            else //normal
+            {
+               n = tTarget.Text + "\\" + Path.GetFileName(tSource.Text).Replace("\\", "").Replace("/", "").Replace(":", "").Replace("*", "").Replace("?", "").Replace("\"", "").Replace("<", "").Replace(">", "").Replace("|", ""); wc.DownloadFileAsync(new Uri(tSource.Text), n);
+            }
+            //
             bStart.Enabled = false; bCancel.Enabled = true;
          }
          catch(Exception ex) { MessageBox.Show(this, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error); wc.Dispose(); }
@@ -67,9 +91,7 @@ namespace Downloader
       //
       void bCancel_Click(object o, EventArgs e)
       {
-         tSource.ReadOnly = false; bPaste.Enabled = true; bBrowse.Enabled = true; wc.CancelAsync(); wc.Dispose(); bCancel.Enabled = false;
-         //memoria
-         Process.GetCurrentProcess().MaxWorkingSet = Process.GetCurrentProcess().MaxWorkingSet;
+         tSource.ReadOnly = false; bPaste.Enabled = true; bBrowse.Enabled = true; wc.CancelAsync(); bCancel.Enabled = false; wc.Dispose();
       }
 
       //
@@ -79,7 +101,7 @@ namespace Downloader
          //
          if(pb.Value < 100) //canceled
          {
-            try { File.Delete(tTarget.Text + "\\" + Path.GetFileName(tSource.Text)); }
+            try { File.Delete(n); }
             catch(Exception ex) { MessageBox.Show(this, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error); }
             //
             if(MessageBox.Show(this, "Download canceled. Exit ?", Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
@@ -140,7 +162,7 @@ namespace Downloader
 
       //
       void bPaste_MouseHover(object o, EventArgs e) { tip.Show("1) Paste URL", this, 404, -10, 999); }
-      void bBrowse_MouseHover(object o, EventArgs e) { tip.Show("2) Browse", this, 404, 36, 999); }
+      void bBrowse_MouseHover(object o, EventArgs e) { tip.Show("2) Browse", this, 250, 36, 999); }
       void vit_MouseHover(object o, EventArgs e) { tip.Show("Download speed", this, 370, 155, 999); }
 
       //
