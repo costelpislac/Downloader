@@ -1,0 +1,3 @@
+﻿
+GNU General Public License
+
